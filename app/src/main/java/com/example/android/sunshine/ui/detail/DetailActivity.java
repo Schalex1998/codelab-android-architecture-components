@@ -15,6 +15,7 @@
  */
 package com.example.android.sunshine.ui.detail;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -22,6 +23,7 @@ import android.support.v7.app.AppCompatActivity;
 import com.example.android.sunshine.R;
 import com.example.android.sunshine.data.database.WeatherEntry;
 import com.example.android.sunshine.databinding.ActivityDetailBinding;
+import com.example.android.sunshine.utilities.InjectorUtils;
 import com.example.android.sunshine.utilities.SunshineDateUtils;
 import com.example.android.sunshine.utilities.SunshineWeatherUtils;
 
@@ -43,6 +45,8 @@ public class DetailActivity extends AppCompatActivity {
      */
     private ActivityDetailBinding mDetailBinding;
 
+    private DetailActivityViewModel mViewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,9 +55,16 @@ public class DetailActivity extends AppCompatActivity {
         long timestamp = getIntent().getLongExtra(WEATHER_ID_EXTRA, -1);
         Date date = new Date(timestamp);
 
+        DetailViewModelFactory detailViewModelFactory = InjectorUtils.provideDetailViewModelFactory(this, date);
+        mViewModel = ViewModelProviders.of(this, detailViewModelFactory).get(DetailActivityViewModel.class);
+        mViewModel.getWeather().observe(this, this::bindWeatherToUI);
     }
 
     private void bindWeatherToUI(WeatherEntry weatherEntry) {
+
+        if (weatherEntry == null)
+            return;
+
         /****************
          * Weather Icon *
          ****************/

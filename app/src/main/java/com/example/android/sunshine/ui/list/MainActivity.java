@@ -15,6 +15,7 @@
  */
 package com.example.android.sunshine.ui.list;
 
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -25,6 +26,7 @@ import android.widget.ProgressBar;
 
 import com.example.android.sunshine.R;
 import com.example.android.sunshine.ui.detail.DetailActivity;
+import com.example.android.sunshine.utilities.InjectorUtils;
 
 import java.util.Date;
 
@@ -40,10 +42,22 @@ public class MainActivity extends AppCompatActivity implements
     private int mPosition = RecyclerView.NO_POSITION;
     private ProgressBar mLoadingIndicator;
 
+    private MainActivityViewModel viewModel;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_forecast);
+
+        MainActivityViewModelFactory mainActivityViewModelFactory = InjectorUtils.provideMainActivityViewModelFactory(this);
+        viewModel = ViewModelProviders.of(this, mainActivityViewModelFactory).get(MainActivityViewModel.class);
+        viewModel.getWeatherEntries().observe(this, weatherEntries -> {
+            mForecastAdapter.swapForecast(weatherEntries);
+            if (weatherEntries != null && weatherEntries.size() != 0)
+                showWeatherDataView();
+            else
+                showLoading();
+        });
 
         /*
          * Using findViewById, we get a reference to our RecyclerView from xml. This allows us to
